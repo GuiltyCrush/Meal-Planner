@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>今日食谱</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500&family=Lora:ital,wght@0,400;0,600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f2ede8;--card:#faf7f4;--ink:#3d3530;--sub:#8a7e76;--faint:#b8ada5;--sel:#8a7060;--selb:#f0e8e2;--ok:#6a8a72;--okb:#e2ede4;--rose:#a07878;--roseb:#f0e4e4;--line:#ddd5cc;--shad:0 2px 12px rgba(80,60,50,.08);--hdr:#4a3e38;--hfg:#f7f2ee;--sf:'Noto Serif SC',serif;--ss:'Noto Sans SC','Inter',sans-serif;--sef:Lora,serif;--sen:'Inter',sans-serif}
+[data-theme=dark]{--bg:#1e1a18;--card:#2a2420;--ink:#ede5dc;--sub:#9a8e85;--faint:#5a5048;--sel:#b09080;--selb:#3a2e28;--ok:#7aaa82;--okb:#1a2e1e;--rose:#c09090;--roseb:#2e1e1e;--line:#3a3028;--shad:0 2px 12px rgba(0,0,0,.4);--hdr:#141210;--hfg:#ede5dc}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--ss);background:var(--bg);color:var(--ink);padding-bottom:68px;-webkit-tap-highlight-color:transparent}
+/* Header */
+.hdr{background:var(--hdr);color:var(--hfg);padding:14px 14px 18px;position:relative;overflow:hidden}
+.hdr::before{content:'';position:absolute;right:-24px;top:-24px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,.06);pointer-events:none}
+.hdr-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;position:relative;z-index:1}
+.hdr-l{flex:1;min-width:0}
+.hdate{font-size:10px;letter-spacing:.8px;opacity:.55;margin-bottom:2px}
+.htitle{font-size:20px;font-weight:700;line-height:1.2;margin-bottom:2px}
+.hsub{font-size:10px;opacity:.45}
+.hbtns{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.hbtn{height:27px;min-width:27px;border-radius:20px;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.09);color:var(--hfg);font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;font-family:inherit;font-weight:500;white-space:nowrap}
+.hbtn:active{opacity:.65}
+/* Card */
+.card{background:var(--card);margin:10px 10px 0;border-radius:14px;padding:13px;box-shadow:var(--shad);border:1px solid var(--line)}
+.ctitle{font-size:13px;font-weight:600;margin-bottom:11px;display:flex;align-items:center;gap:6px}
+.ctitle::before{content:'';width:3px;height:13px;background:var(--sel);border-radius:2px;flex-shrink:0}
+.srow{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px}
+.srow:last-child{margin-bottom:0}
+.lbl{font-size:12px;color:var(--sub);flex-shrink:0;font-weight:500}
+.lblsm{font-size:12px;color:var(--sub);margin-bottom:5px;font-weight:500}
+/* Counter */
+.counter{display:flex;align-items:center;gap:8px}
+.cbtn{width:26px;height:26px;border-radius:50%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.cbtn:active{background:var(--selb);border-color:var(--sel)}
+.cval{font-size:16px;font-weight:600;min-width:20px;text-align:center}
+/* Toggle */
+.tg{display:flex;gap:4px}
+.tgb{padding:4px 10px;border-radius:16px;border:1.5px solid var(--line);background:transparent;font-size:12px;font-family:inherit;color:var(--sub);cursor:pointer}
+.tgb.on{background:var(--sel);color:#fff;border-color:var(--sel)}
+/* Meal rows */
+.mrows{display:flex;flex-direction:column;gap:5px;margin-top:4px;width:100%}
+.mrow{display:flex;align-items:center;gap:7px}
+.mchk{width:32px;height:32px;border-radius:9px;border:1.5px solid var(--line);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;flex-shrink:0;user-select:none;transition:background .15s,border-color .15s}
+.mchk.on{background:var(--sel);border-color:var(--sel)}
+.mlbl{font-size:12px;color:var(--sub);font-weight:500;flex-shrink:0;min-width:30px}
+.ctg{display:flex;gap:3px;margin-left:auto}
+.ctgb{padding:3px 8px;border-radius:11px;border:1.5px solid var(--line);background:transparent;font-size:11px;font-family:inherit;color:var(--sub);cursor:pointer;white-space:nowrap}
+.ctgb.on{background:var(--sel);color:#fff;border-color:var(--sel)}
+.mrow.off .mlbl,.mrow.off .ctg{opacity:.28;pointer-events:none}
+/* Switch */
+.sw{width:44px;height:25px;border-radius:13px;background:var(--line);cursor:pointer;position:relative;flex-shrink:0;transition:background .22s}
+.sw.on{background:var(--sel)}
+.swk{position:absolute;top:2.5px;left:2.5px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15);transition:transform .22s}
+.sw.on .swk{transform:translateX(19px)}
+/* Badges */
+.sbadge{background:var(--okb);color:var(--ok);border-radius:9px;padding:3px 8px;font-size:11px;font-weight:500}
+.jbadge{background:var(--roseb);color:var(--rose);border-radius:9px;padding:3px 8px;font-size:11px;font-weight:500}
+/* Taboos */
+.tchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.tchip{display:flex;align-items:center;gap:3px;background:var(--bg);color:var(--sub);border-radius:16px;padding:3px 8px;font-size:11px;cursor:pointer;border:1.5px solid var(--line);user-select:none}
+.tchip.on{background:var(--sel);color:#fff;border-color:var(--sel)}
+/* Input */
+.ci{width:100%;border:1.5px solid var(--line);border-radius:9px;padding:7px 10px;font-size:12px;font-family:inherit;color:var(--ink);background:var(--bg);outline:none;margin-top:4px;resize:none}
+.ci:focus{border-color:var(--sel)}
+.ci::placeholder{color:var(--faint)}
+/* Gen btn */
+.gbtn{display:block;margin:10px 10px 0;width:calc(100% - 20px);background:var(--sel);color:#fff;border:none;border-radius:13px;padding:13px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(138,112,96,.25)}
+.gbtn:active{opacity:.85}
+.gbtn:disabled{opacity:.45;cursor:not-allowed}
+/* Results */
+.res{padding:10px}
+.tipbox{background:var(--okb);border-left:3px solid var(--ok);border-radius:0 9px 9px 0;padding:8px 12px;margin-bottom:10px;font-size:12px;color:var(--ok);line-height:1.6}
+.nbar{background:var(--card);border-radius:12px;border:1px solid var(--line);padding:11px;margin-bottom:10px}
+.ntit{font-size:11px;font-weight:600;margin-bottom:8px;color:var(--sub);letter-spacing:.5px}
+.nitems{display:flex;gap:5px}
+.ni{flex:1;text-align:center;background:var(--bg);border-radius:9px;padding:7px 4px}
+.nv{font-size:13px;font-weight:700;color:var(--sel)}
+.nl{font-size:10px;color:var(--sub);margin-top:2px}
+.msec{margin-bottom:14px}
+.mhd{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.mico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.mico.B{background:#f5eddf}.mico.L{background:#deeade}.mico.D{background:#dde4ee}
+[data-theme=dark] .mico.B{background:#302a1e}[data-theme=dark] .mico.L{background:#1a2e1e}[data-theme=dark] .mico.D{background:#1a2030}
+.mnm{font-size:14px;font-weight:600}
+.ctag{font-size:10px;padding:2px 6px;border-radius:6px;background:var(--selb);color:var(--sel);margin-left:5px;vertical-align:middle}
+/* Dish card */
+.dc{background:var(--card);border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:7px;transition:opacity .3s}
+.dc.busy{opacity:.35;pointer-events:none}
+.dh{padding:10px 12px 8px;display:flex;align-items:flex-start;gap:6px}
+.dhn{flex:1;cursor:pointer;min-width:0}
+.dt{font-size:13px;font-weight:600;color:var(--ink);line-height:1.35;word-break:break-word}
+.dtags{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px}
+.dtag{font-size:10px;padding:2px 6px;border-radius:6px;background:var(--selb);color:var(--sel)}
+.dtag.g{background:var(--okb);color:var(--ok)}
+.dtag.r{background:var(--roseb);color:var(--rose);font-weight:600}
+.das{display:flex;align-items:center;gap:4px;flex-shrink:0;padding-top:1px}
+.dexp{font-size:10px;color:var(--faint);cursor:pointer;padding:4px;user-select:none;transition:transform .2s}
+.dexp.open{transform:rotate(180deg)}
+.dswp{font-size:11px;padding:4px 8px;border-radius:7px;border:1.5px solid var(--line);background:var(--bg);color:var(--sub);cursor:pointer;white-space:nowrap;font-family:inherit}
+.dswp:active{border-color:var(--sel);color:var(--sel)}
+.dswp:disabled{opacity:.4}
+.db{display:none;padding:0 12px 10px;border-top:1px solid var(--line)}
+.db.open{display:block}
+.dsec{font-size:10px;letter-spacing:.8px;color:var(--faint);margin:8px 0 5px;text-transform:uppercase}
+.inglist{display:flex;flex-wrap:wrap;gap:4px}
+.ingchip{font-size:11px;padding:3px 8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;color:var(--ink)}
+.stps{list-style:none;counter-reset:s}
+.stps li{counter-increment:s;display:flex;gap:8px;font-size:12px;line-height:1.6;color:var(--sub);margin-bottom:5px}
+.stps li::before{content:counter(s);display:flex;align-items:center;justify-content:center;width:18px;height:18px;min-width:18px;border-radius:50%;background:var(--selb);color:var(--sel);font-size:10px;font-weight:600;margin-top:2px}
+/* Confirm */
+.cfbtn{display:none;width:100%;margin-bottom:10px;background:var(--ok);color:#fff;border:none;border-radius:12px;padding:12px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.cfbtn.show{display:block}
+.cfbtn:active{opacity:.85}
+.cfbtn:disabled{opacity:.6}
+/* Loading */
+.lbox{text-align:center;padding:32px 16px}
+.dots{display:flex;justify-content:center;gap:6px;margin-bottom:12px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--sel);animation:bnc 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes bnc{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+.ltxt{font-size:12px;color:var(--sub)}
+/* Sep */
+.sep{height:1px;background:var(--line);margin:3px 0 10px}
+/* Shop */
+.shopcard{background:var(--card);border-radius:13px;border:1px solid var(--line);overflow:hidden;margin-bottom:10px}
+.shophead{background:var(--hdr);color:var(--hfg);padding:11px 12px;display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.shophtit{font-size:13px;font-weight:600;flex:1}
+.shopbadge{font-size:10px;opacity:.75;background:rgba(255,255,255,.15);padding:2px 7px;border-radius:8px;white-space:nowrap}
+.shopab{font-size:11px;padding:3px 8px;border-radius:8px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:var(--hfg);cursor:pointer;white-space:nowrap;font-family:inherit;font-weight:500;flex-shrink:0}
+.shopbody{padding:10px 12px}
+.shopcat{margin-bottom:10px}.shopcat:last-child{margin-bottom:0}
+.shopchdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;padding-bottom:4px;border-bottom:1px dashed var(--line)}
+.shopctit{font-size:10px;letter-spacing:.8px;color:var(--sub);font-weight:500}
+.shopcb{font-size:11px;padding:2px 7px;border-radius:7px;border:1.5px solid var(--sel);background:var(--selb);color:var(--sel);cursor:pointer;white-space:nowrap;font-family:inherit;font-weight:500;user-select:none}
+.shopcb:hover{background:var(--sel);color:#fff}
+.shopcb.done{border-color:var(--line);background:var(--bg);color:var(--sub)}
+.shopitems{display:flex;flex-wrap:wrap;gap:5px}
+.shopitem{display:flex;align-items:center;gap:5px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:5px 8px;cursor:pointer;font-size:11px;user-select:none}
+.shopitem.chk{opacity:.35;text-decoration:line-through}
+.shopck{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0}
+.shopitem.chk .shopck{background:var(--ok);border-color:var(--ok);color:#fff}
+.shopamt{font-size:10px;color:var(--faint)}
+.shophint{margin-top:8px;text-align:center;font-size:10px;color:var(--faint)}
+/* Translate overlay */
+.tov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.tbox{background:var(--card);border-radius:14px;padding:24px 28px;text-align:center}
+.tbox p{font-size:13px;color:var(--sub);margin-top:10px}
+/* Pages + Nav */
+.page{display:none}.page.active{display:block}
+.bnav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--line);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom,0)}
+.nbtn{flex:1;padding:8px 0 10px;border:none;background:transparent;cursor:pointer;font-size:10px;color:var(--faint);display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit}
+.ni{font-size:18px;line-height:1}
+.nbtn.on{color:var(--sel)}
+/* History */
+.histwrap{padding:10px 10px 0}
+.histhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.histtit{font-size:14px;font-weight:600}
+.histclr{font-size:11px;color:var(--faint);cursor:pointer;text-decoration:underline}
+.calnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.calnb{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);background:var(--bg);color:var(--ink);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.calnb:active{background:var(--selb)}
+.calmo{font-size:13px;font-weight:600}
+.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px}
+.calwd{text-align:center;font-size:9px;color:var(--faint);padding:3px 0}
+.calday{aspect-ratio:1;border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1.5px solid transparent;user-select:none}
+.calday.empty{cursor:default;pointer-events:none}
+.calday.has{background:var(--selb)}.calday.has .cdn{color:var(--sel);font-weight:600}
+.calday.today{border-color:var(--ok)!important}.calday.today .cdn{color:var(--ok);font-weight:700}
+.calday.sel{background:var(--sel)!important;border-color:var(--sel)!important}.calday.sel .cdn{color:#fff!important}
+.cdn{font-size:11px;color:var(--ink)}
+.cdot{width:3px;height:3px;border-radius:50%;background:var(--sel);margin-top:1px}
+.calday.sel .cdot{background:rgba(255,255,255,.8)}
+.caldet{background:var(--card);border-radius:12px;border:1px solid var(--line);overflow:hidden;margin-bottom:10px}
+.caldethdr{padding:9px 12px;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px}
+.caldetdate{font-size:12px;font-weight:600;flex:1}
+.caldetbody{padding:10px 12px}
+/* History dish */
+.hmb{margin-bottom:11px}.hmb:last-child{margin-bottom:0}
+.hmmhdr{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.hmmico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.hmmico.B{background:#f5eddf}.hmmico.L{background:#deeade}.hmmico.D{background:#dde4ee}
+[data-theme=dark] .hmmico.B{background:#302a1e}[data-theme=dark] .hmmico.L{background:#1a2e1e}[data-theme=dark] .hmmico.D{background:#1a2030}
+.hmmlbl{font-size:12px;font-weight:600;flex:1}
+.hmctag{font-size:10px;padding:1px 6px;border-radius:6px;background:var(--selb);color:var(--sel);margin-left:4px}
+.hmdish{background:var(--bg);border:1px solid var(--line);border-radius:9px;margin-bottom:4px;overflow:hidden}
+.hmdishhdr{padding:6px 10px;display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+.hmdishnm{font-size:12px;font-weight:600;flex:1;color:var(--ink)}
+.hmexp{font-size:9px;color:var(--faint);transition:transform .2s}
+.hmexp.open{transform:rotate(180deg)}
+.hmdishbody{display:none;padding:0 10px 8px;border-top:1px solid var(--line)}
+.hmdishbody.open{display:block}
+.hmsec{font-size:9px;letter-spacing:.7px;color:var(--faint);margin:6px 0 4px;text-transform:uppercase}
+.hming{display:flex;flex-wrap:wrap;gap:3px}
+.hmingchip{font-size:10px;padding:2px 7px;background:var(--card);border:1px solid var(--line);border-radius:7px;color:var(--ink)}
+.hmstps{list-style:none;counter-reset:hs}
+.hmstps li{counter-increment:hs;display:flex;gap:6px;font-size:11px;line-height:1.55;color:var(--sub);margin-bottom:4px}
+.hmstps li::before{content:counter(hs);display:flex;align-items:center;justify-content:center;width:15px;height:15px;min-width:15px;border-radius:50%;background:var(--selb);color:var(--sel);font-size:9px;font-weight:600;margin-top:2px}
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-row">
+    <div class="hdr-l">
+      <div class="hdate" id="hDate"></div>
+      <div class="htitle" id="hTitle"></div>
+      <div class="hsub" id="hSub"></div>
+    </div>
+    <div class="hbtns">
+      <button class="hbtn" id="darkBtn" onclick="tDark()">🌙</button>
+      <button class="hbtn" id="langBtn" onclick="tLang()">EN</button>
+    </div>
+  </div>
+</div>
+<div class="page active" id="pagePlan">
+  <div class="card">
+    <div class="ctitle" id="lPref"></div>
+    <div class="srow" style="flex-direction:column;align-items:flex-start;gap:5px">
+      <span class="lbl" id="lPlanMeals"></span>
+      <div class="mrows">
+        <div class="mrow" id="mrow_B"><div class="mchk on" id="mchk_B" onclick="tMeal('B')">🌅</div><span class="mlbl" id="mlbl_B"></span><div class="ctg"><button class="ctgb on" id="ct_B_zh" onclick="sCuisine('B','zh')"></button><button class="ctgb" id="ct_B_en" onclick="sCuisine('B','en')"></button></div></div>
+        <div class="mrow" id="mrow_L"><div class="mchk on" id="mchk_L" onclick="tMeal('L')">☀️</div><span class="mlbl" id="mlbl_L"></span><div class="ctg"><button class="ctgb on" id="ct_L_zh" onclick="sCuisine('L','zh')"></button><button class="ctgb" id="ct_L_en" onclick="sCuisine('L','en')"></button></div></div>
+        <div class="mrow" id="mrow_D"><div class="mchk on" id="mchk_D" onclick="tMeal('D')">🌙</div><span class="mlbl" id="mlbl_D"></span><div class="ctg"><button class="ctgb on" id="ct_D_zh" onclick="sCuisine('D','zh')"></button><button class="ctgb" id="ct_D_en" onclick="sCuisine('D','en')"></button></div></div>
+      </div>
+    </div>
+    <div class="srow"><span class="lbl" id="lAdults"></span><div class="counter"><button class="cbtn" onclick="adj('adults',-1)">−</button><span class="cval" id="vAdults">3</span><button class="cbtn" onclick="adj('adults',1)">+</button></div></div>
+    <div class="srow"><span class="lbl" id="lKids"></span><div class="counter"><button class="cbtn" onclick="adj('kids',-1)">−</button><span class="cval" id="vKids">0</span><button class="cbtn" onclick="adj('kids',1)">+</button></div></div>
+    <div class="srow"><span class="lbl" id="lTime"></span><div class="tg"><button class="tgb on" id="tbQ" onclick="sTime('Q')"></button><button class="tgb" id="tbR" onclick="sTime('R')"></button></div></div>
+    <div class="srow"><div style="flex:1;min-width:0;padding-right:8px"><div class="lbl" id="lBold"></div><div style="font-size:10px;color:var(--faint);margin-top:2px" id="lBoldSub"></div></div><div class="sw" id="richSw" onclick="tRich()"><div class="swk"></div></div></div>
+    <div class="srow"><span class="lbl" id="lSeason"></span><div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"><div class="sbadge" id="sBadge"></div><div class="jbadge" id="jBadge" style="display:none"></div></div></div>
+    <div style="margin-bottom:9px"><div class="lblsm" id="lTaboo"></div><div class="tchips" id="tchips"></div></div>
+    <div><div class="lblsm" id="lSpec"></div><textarea class="ci" id="specReq" rows="2"></textarea></div>
+  </div>
+  <button class="gbtn" id="genBtn" onclick="gen()"></button>
+  <div class="res" id="res"></div>
+</div>
+<div class="page" id="pageHistory">
+  <div class="histwrap">
+    <div class="histhdr"><div class="histtit" id="lHistTit"></div><span class="histclr" id="histClr" onclick="clrHist()"></span></div>
+    <div id="histList"></div>
+  </div>
+</div>
+<div class="bnav">
+  <button class="nbtn on" id="nav_Plan" onclick="showPage('Plan')"><span class="ni">🍽️</span><span id="nlPlan"></span></button>
+  <button class="nbtn" id="nav_History" onclick="showPage('History')"><span class="ni">📖</span><span id="nlHist"></span></button>
+</div>
+<script>
+
+
+
+var lang='zh',dark=false,rich=false;
+var S={adults:3,kids:0,time:'Q'};
+var mOn={B:true,L:true,D:true};
+var cuis={B:'zh',L:'zh',D:'zh'};
+var taboos=new Set();
+var plan=null;
+var calY=new Date().getFullYear(),calM=new Date().getMonth(),selDate=null;
+/* ── Strings ── */
+var T={
+zh:{tt:'今日食谱',sb:'营养均衡 · 应季推荐',pref:'今日偏好',pm:'规划餐食',adults:'成人人数',kids:'儿童人数',
+time:'今日做饭时间',tq:'有限',tr:'充裕',bold:'重口味替换',boldsub:'将1-2道清淡菜替换为重口味菜',
+season:'季节 / 节气',taboo:'忌口 / 不吃',spec:'特殊要求（选填）',specph:'例如：今天想吃肉、想喝汤…',
+B:'早餐',L:'午餐',D:'晚餐',czh:'中餐',cen:'西餐',
+genAll:'✦ 为我推荐今日三餐',genSome:function(m){return'✦ 为我推荐 '+m;},
+genning:'正在为您规划…',regen:function(m){return'✦ 重新推荐 '+m;},
+trans:'正在翻译…',err:'生成失败，请重试',swap:'↻ 换一换',
+shopTit:'今日购买清单',shopAllOn:'全部已购',shopAllOff:'取消',catOn:'全部已购',catOff:'取消',
+shopHint:'点击食材勾选',shopLeft:function(n){return'还剩'+n+'种';},shopDone:'✓ 全部购齐！',shopN:function(n){return n+'种食材';},
+cfBtn:'✓ 确定今日食谱，记录在册',reCfBtn:'✓ 重新确认今日食谱',cfMsg:'✓ 已记录！',
+clrCf:'确定清空所有饮食记录？',noRec:'这天还没有记录 📝',
+mlbls:{B:'🌅 早餐',L:'☀️ 午餐',D:'🌙 晚餐'},
+ing:'食材用量',steps:'烹饪步骤',nut:'营养概览',cal:'总热量',prot:'蛋白质',veg:'蔬菜份数',
+wds:['日','一','二','三','四','五','六'],
+mos:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+calTit:function(y,m){return y+'年'+T.zh.mos[m];},recDate:function(d){return d+' 餐食';},
+navPlan:'今日偏好',navHist:'饮食记录',histTit:'📖 饮食记录',clrRec:'清空记录',
+tlist:[['不吃辣','🌶️'],['不吃香菜','🌿'],['不吃海鲜','🦐'],['不吃猪肉','🐷'],['素食','🥗'],['不吃牛羊肉','🐄'],['不吃蛋','🥚'],['不吃豆制品','🫘']],
+ten:{'不吃辣':'No spicy','不吃香菜':'No cilantro','不吃海鲜':'No seafood','不吃猪肉':'No pork','素食':'Vegetarian','不吃牛羊肉':'No beef/lamb','不吃蛋':'No eggs','不吃豆制品':'No soy'},
+sc:['蔬菜','肉蛋水产','主食杂粮','奶豆豆制品','水果','调料干货','其他'],
+si:{蔬菜:'🥦',肉蛋水产:'🥩',主食杂粮:'🌾',奶豆豆制品:'🥛',水果:'🍎',调料干货:'🧂',其他:'📦'},
+sj:'"蔬菜":[{"name":"食材","amount":"量"}],"肉蛋水产":[],"主食杂粮":[],"奶豆豆制品":[],"水果":[],"调料干货":[],"其他":[]',
+f:"var(--sf)"},
+en:{tt:'Daily Meals',sb:'Balanced · Seasonal',pref:"Today's Preferences",pm:'Plan Meals',adults:'Adults',kids:'Children',
+time:'Cook Time',tq:'Quick',tr:'Relaxed',bold:'Bold flavor swap',boldsub:'Replace 1-2 dishes with bolder flavors',
+season:'Season',taboo:'Restrictions',spec:'Special requests',specph:'e.g. Craving meat, want soup…',
+B:'Breakfast',L:'Lunch',D:'Dinner',czh:'Chinese',cen:'Western',
+genAll:"✦ Plan Today's Meals",genSome:function(m){return'✦ Plan: '+m;},
+genning:'Planning your meals…',regen:function(m){return'✦ Redo: '+m;},
+trans:'Translating…',err:'Generation failed. Please retry.',swap:'↻ Swap',
+shopTit:'Shopping List',shopAllOn:'All Bought',shopAllOff:'Undo',catOn:'All Bought',catOff:'Undo',
+shopHint:'Tap items to check off',shopLeft:function(n){return n+' left';},shopDone:'✓ All done!',shopN:function(n){return n+' items';},
+cfBtn:'✓ Confirm & Save Menu',reCfBtn:'✓ Update Record',cfMsg:'✓ Saved!',
+clrCf:'Clear all history?',noRec:'No record for this day 📝',
+mlbls:{B:'🌅 Breakfast',L:'☀️ Lunch',D:'🌙 Dinner'},
+ing:'Ingredients',steps:'Steps',nut:'Nutrition',cal:'Calories',prot:'Protein',veg:'Veggies',
+wds:['Su','Mo','Tu','We','Th','Fr','Sa'],
+mos:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+calTit:function(y,m){return T.en.mos[m]+' '+y;},recDate:function(d){return d;},
+navPlan:'Plan',navHist:'History',histTit:'📖 History',clrRec:'Clear all',
+tlist:[['No spicy','🌶️'],['No cilantro','🌿'],['No seafood','🦐'],['No pork','🐷'],['Vegetarian','🥗'],['No beef/lamb','🐄'],['No eggs','🥚'],['No soy','🫘']],
+ten:null,
+sc:['Vegetables','Meat & Eggs','Grains','Dairy & Soy','Fruits','Condiments','Other'],
+si:{Vegetables:'🥦','Meat & Eggs':'🥩',Grains:'🌾','Dairy & Soy':'🥛',Fruits:'🍎',Condiments:'🧂',Other:'📦'},
+sj:'"Vegetables":[{"name":"item","amount":"qty"}],"Meat & Eggs":[],"Grains":[],"Dairy & Soy":[],"Fruits":[],"Condiments":[],"Other":[]',
+f:"var(--sef)"}
+};
+function L(){return T[lang];}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+/* ── API ── */
+function getKey(){return localStorage.getItem('ds_key')||'';}
+async function api(prompt,maxT){
+  const key=getKey();
+  if(!key)throw new Error('NO_KEY');
+  const r=await fetch('https://api.deepseek.com/v1/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:'deepseek-chat',max_tokens:maxT||4000,messages:[{role:'user',content:prompt}]})
+  });
+  const dat=await r.json();
+  if(dat.error)throw new Error('Deepseek: '+JSON.stringify(dat.error));
+  if(!dat.choices||!dat.choices.length)throw new Error('No content: '+JSON.stringify(dat).slice(0,200));
+  return dat.choices[0].message.content.replace(/```json|```/g,'').trim();
+}
+/* ── Jieqi ── */
+var JQ=[{n:'小寒',e:'Minor Cold',m:1,d:5},{n:'大寒',e:'Major Cold',m:1,d:20},{n:'立春',e:'Start of Spring',m:2,d:4},{n:'雨水',e:'Rain Water',m:2,d:19},{n:'惊蛰',e:'Awakening',m:3,d:6},{n:'春分',e:'Spring Equinox',m:3,d:21},{n:'清明',e:'Clear Bright',m:4,d:5},{n:'谷雨',e:'Grain Rain',m:4,d:20},{n:'立夏',e:'Start of Summer',m:5,d:6},{n:'小满',e:'Grain Buds',m:5,d:21},{n:'芒种',e:'Grain in Ear',m:6,d:6},{n:'夏至',e:'Summer Solstice',m:6,d:21},{n:'小暑',e:'Minor Heat',m:7,d:7},{n:'大暑',e:'Major Heat',m:7,d:23},{n:'立秋',e:'Start of Autumn',m:8,d:7},{n:'处暑',e:'End of Heat',m:8,d:23},{n:'白露',e:'White Dew',m:9,d:8},{n:'秋分',e:'Autumn Equinox',m:9,d:23},{n:'寒露',e:'Cold Dew',m:10,d:8},{n:'霜降',e:"Frost's Descent",m:10,d:23},{n:'立冬',e:'Start of Winter',m:11,d:7},{n:'小雪',e:'Minor Snow',m:11,d:22},{n:'大雪',e:'Major Snow',m:12,d:7},{n:'冬至',e:'Winter Solstice',m:12,d:22}];
+function getSeason(){var m=new Date().getMonth()+1;if(m>=3&&m<=5)return{zh:'🌸 春季',en:'🌸 Spring',s:'春季',se:'Spring'};if(m>=6&&m<=8)return{zh:'☀️ 夏季',en:'☀️ Summer',s:'夏季',se:'Summer'};if(m>=9&&m<=11)return{zh:'🍂 秋季',en:'🍂 Autumn',s:'秋季',se:'Autumn'};return{zh:'❄️ 冬季',en:'❄️ Winter',s:'冬季',se:'Winter'};}
+function getJq(){var now=new Date(),best=null,mD=Infinity,mF=Infinity,i,j,d,df;for(i=0;i<JQ.length;i++){j=JQ[i];d=new Date(now.getFullYear(),j.m-1,j.d);df=(now-d)/864e5;if(df>=0&&df<16&&df<mD){mD=df;best=j;}}if(!best){for(i=0;i<JQ.length;i++){j=JQ[i];d=new Date(now.getFullYear(),j.m-1,j.d);df=(d-now)/864e5;if(df>=0&&df<mF){mF=df;best=j;}}}return best;}
+/* ── Init ── */
+function init(){
+  var now=new Date(),dc=['周日','周一','周二','周三','周四','周五','周六'];
+  var dZH=now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日 '+dc[now.getDay()];
+  var dEN=now.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+  var el=document.getElementById('hDate');el.dataset.zh=dZH;el.dataset.en=dEN;el.textContent=dZH;
+  var si=getSeason(),sB=document.getElementById('sBadge');sB.dataset.zh=si.zh;sB.dataset.en=si.en;sB.textContent=si.zh;
+  var jq=getJq(),jEl=document.getElementById('jBadge');if(jq){jEl.dataset.zh='☯ '+jq.n;jEl.dataset.en='☯ '+jq.e;jEl.textContent='☯ '+jq.n;jEl.style.display='inline-flex';}
+}
+init();
+/* ── Apply Lang ── */
+function applyLang(){
+  var l=L(),zh=lang==='zh',f=l.f;
+  document.documentElement.lang=lang;
+  document.getElementById('langBtn').textContent=zh?'EN':'中文';
+  function set(id,txt,fam){var el=document.getElementById(id);if(el){el.textContent=txt;if(fam)el.style.fontFamily=fam;}}
+  set('hTitle',l.tt,f);set('hSub',l.sb);set('lPref',l.pref,f);set('lPlanMeals',l.pm);
+  set('lAdults',l.adults);set('lKids',l.kids);set('lTime',l.time);
+  set('tbQ',l.tq);set('tbR',l.tr);set('lBold',l.bold);set('lBoldSub',l.boldsub);
+  set('lSeason',l.season);set('lTaboo',l.taboo);set('lSpec',l.spec);
+  document.getElementById('specReq').placeholder=l.specph;
+  set('mlbl_B',l.B);set('mlbl_L',l.L);set('mlbl_D',l.D);
+  ['B','L','D'].forEach(function(k){set('ct_'+k+'_zh',l.czh);set('ct_'+k+'_en',l.cen);});
+  var hd=document.getElementById('hDate');hd.textContent=zh?hd.dataset.zh:hd.dataset.en;
+  var sB=document.getElementById('sBadge');sB.textContent=zh?sB.dataset.zh:sB.dataset.en;
+  var jEl=document.getElementById('jBadge');if(jEl.dataset.zh)jEl.textContent=zh?jEl.dataset.zh:jEl.dataset.en;
+  set('nlPlan',l.navPlan);set('nlHist',l.navHist);set('lHistTit',l.histTit,f);set('histClr',l.clrRec);
+  buildTaboos();updateGenBtn();
+  if(document.getElementById('pageHistory').classList.contains('active'))renderCal();
+}
+function buildTaboos(){
+  var l=L(),html='';
+  l.tlist.forEach(function(t,i){var zk=T.zh.tlist[i][0];html+='<div class="tchip'+(taboos.has(zk)?' on':'')+'" onclick="tTaboo(this,'+i+')" data-i="'+i+'">'+t[1]+' '+t[0]+'</div>';});
+  document.getElementById('tchips').innerHTML=html;
+}
+/* ── Controls ── */
+function tDark(){dark=!dark;document.documentElement.setAttribute('data-theme',dark?'dark':'light');document.getElementById('darkBtn').textContent=dark?'☀️':'🌙';}
+function tLang(){lang=lang==='zh'?'en':'zh';applyLang();var res=document.getElementById('res');if(plan&&res.children.length&&!res.querySelector('.lbox')){transPlan();}transHist();}
+function tMeal(k){mOn[k]=!mOn[k];document.getElementById('mchk_'+k).classList.toggle('on',mOn[k]);document.getElementById('mrow_'+k).classList.toggle('off',!mOn[k]);updateGenBtn();}
+function sCuisine(k,c){cuis[k]=c;document.getElementById('ct_'+k+'_zh').classList.toggle('on',c==='zh');document.getElementById('ct_'+k+'_en').classList.toggle('on',c==='en');}
+function adj(k,d){var mx=k==='adults'?10:6,mn=k==='adults'?1:0;S[k]=Math.max(mn,Math.min(mx,S[k]+d));document.getElementById('v'+k[0].toUpperCase()+k.slice(1)).textContent=S[k];updateGenBtn();}
+function sTime(v){S.time=v;document.getElementById('tbQ').classList.toggle('on',v==='Q');document.getElementById('tbR').classList.toggle('on',v==='R');}
+function tRich(){rich=!rich;document.getElementById('richSw').classList.toggle('on',rich);}
+function tTaboo(el,i){var zh=T.zh.tlist[i][0];if(taboos.has(zh)){taboos.delete(zh);el.classList.remove('on');}else{taboos.add(zh);el.classList.add('on');}}
+function showPage(p){['Plan','History'].forEach(function(x){document.getElementById('page'+x).classList.toggle('active',x===p);document.getElementById('nav_'+x).classList.toggle('on',x===p);});if(p==='History')renderCal();}
+function clrHist(){if(confirm(L().clrCf)){localStorage.removeItem('mh');renderCal();}}
+function tgl(id){document.getElementById('db_'+id).classList.toggle('open');document.getElementById('exp_'+id).classList.toggle('open');}
+function tglH(id){document.getElementById('hdb_'+id).classList.toggle('open');document.getElementById('hexp_'+id).classList.toggle('open');}
+/* ── Gen button ── */
+function getSel(){return['B','L','D'].filter(function(k){return mOn[k];});}
+function updateGenBtn(){
+  var sel=getSel(),btn=document.getElementById('genBtn'),l=L();
+  if(!sel.length){btn.textContent=lang==='zh'?'请至少选择一餐':'Select at least one meal';btn.disabled=true;return;}
+  btn.disabled=false;btn.style.fontFamily=l.f;
+  btn.textContent=sel.length===3?l.genAll:l.genSome(sel.map(function(k){return l[k];}).join(lang==='zh'?'、':', '));
+}
+/* ── Generate ── */
+async function gen(){
+  var sel=getSel();if(!sel.length)return;
+  var btn=document.getElementById('genBtn'),resEl=document.getElementById('res'),l=L();
+  btn.disabled=true;btn.textContent=l.genning;
+  var si=getSeason(),jq=getJq(),tot=S.adults+S.kids;
+  var tbs=[...taboos],prompt;
+  if(lang==='zh'){
+    var tD=S.time==='Q'?'时间有限，30分钟内':'时间充裕';
+    var tbS=tbs.length?'【严格忌口】：'+tbs.join('、'):'';
+    var sp=document.getElementById('specReq').value.trim();
+    var spS=sp?'【特殊要求】：'+sp:'';
+    var jS=jq?'节气'+jq.n+'，结合养生。':'';
+    var rS=rich?'将'+(tot>=4?2:1)+'道清淡替换重口（红烧/麻辣等），其余清淡。':'全部清淡少油。';
+    var bR=sel.includes('B')?'早餐：15分钟内，蒸煮或外购，2-3样。':'';
+    var cI=sel.map(function(k){return k+'：'+(cuis[k]==='zh'?'中餐':'西餐');}).join('；');
+    prompt='你是专业营养师，为'+S.adults+'名成人'+(S.kids>0?'和'+S.kids+'名儿童':'')+'（共'+tot+'人）规划'+si.s+'餐食。\n'+jS+rS+tD+'。\n'+tbS+'\n'+spS+'\n'+bR+'\n菜系：'+cI+'（严格遵守）\n每餐2-3道菜。只规划：'+sel.join('、')+'\n\n返回严格JSON，所有文字中文：\n{"season_tip":"养生建议","nutrition":{"calories":"如1800kcal","protein":"如65g","vegetables":"如5份","balanced":"评价"},"meals":{'+sel.map(function(k){return'"'+k+'":{"cuisine":"'+(cuis[k]==='zh'?'中餐':'西餐')+'","dishes":[{"name":"菜名","tags":["标签"],"ingredients":[{"name":"食材","amount":"'+tot+'人份"}],"steps":["步骤1","步骤2"]}]}';}).join(',')+'}, "shopping_list":{'+T.zh.sj+'}}\n食材按'+tot+'人份汇总。';
+  }else{
+    var tD=S.time==='Q'?'limited time':'ample time';
+    var tbE=tbs.map(function(x){return T.zh.ten[x]||x;});
+    var tbS=tbE.length?'[Restrictions]: '+tbE.join(', '):'';
+    var sp=document.getElementById('specReq').value.trim();
+    var spS=sp?'[Special]: '+sp:'';
+    var jS=jq?'Solar term: '+jq.e+'. ':'';
+    var rS=rich?'Replace '+(tot>=4?2:1)+' dish(es) with bold/spicy.':'All light.';
+    var bR=sel.includes('B')?'Breakfast: under 15 min, 2-3 items.':'';
+    var cI=sel.map(function(k){return k+': '+(cuis[k]==='zh'?'Chinese':'Western');}).join('; ');
+    prompt='Nutritionist. Plan '+si.se+' meals for '+tot+' people.\n'+jS+rS+' Time: '+tD+'.\n'+tbS+'\n'+spS+'\n'+bR+'\nCuisine: '+cI+' (strict)\n2-3 dishes per meal. Plan only: '+sel.join(', ')+'\n\nStrict JSON, all English:\n{"season_tip":"tip","nutrition":{"calories":"e.g.1800kcal","protein":"e.g.65g","vegetables":"e.g.5 srv","balanced":"note"},"meals":{'+sel.map(function(k){return'"'+k+'":{"cuisine":"'+(cuis[k]==='zh'?'Chinese':'Western')+'","dishes":[{"name":"dish","tags":["tag"],"ingredients":[{"name":"ingredient","amount":"'+tot+' srv"}],"steps":["step1","step2"]}]}';}).join(',')+'}, "shopping_list":{'+T.en.sj+'}}\nConsolidate ingredients for '+tot+' people.';
+  }
+  resEl.innerHTML='<div class="lbox"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="ltxt">'+l.genning+'</div></div>';
+  try{
+    var txt=await api(prompt,4000);
+    var data=JSON.parse(txt);
+    plan={data:data,sel:sel,date:new Date(),cuis:JSON.parse(JSON.stringify(cuis)),lang:lang,tr:{}};
+    plan.tr[lang]=JSON.parse(JSON.stringify(data));
+    renderRes(data,sel);
+  }catch(err){
+    console.error('gen failed:',err);
+    if(err&&err.message==='NO_KEY'){showSetup();resEl.innerHTML='';}
+    else{var errMsg=err&&err.message?err.message:String(err);resEl.innerHTML='<div class="lbox"><div class="ltxt" style="color:var(--rose)">生成失败<br><div style="font-size:11px;margin-top:8px;padding:8px;background:var(--selb);border-radius:8px;text-align:left;word-break:break-all;line-height:1.5">'+esc(errMsg)+'</div></div></div>';}
+  }
+  btn.disabled=false;btn.style.fontFamily=L().f;
+  btn.textContent=L().regen(getSel().map(function(k){return L()[k];}).join(lang==='zh'?'、':', '));
+}
+/* ── Translate plan ── */
+async function transPlan(){
+  if(!plan)return;var l=L();
+  if(plan.tr&&plan.tr[lang]){plan.data=plan.tr[lang];renderRes(plan.data,plan.sel);return;}
+  var ov=document.createElement('div');ov.className='tov';ov.innerHTML='<div class="tbox"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><p>'+l.trans+'</p></div>';
+  document.body.appendChild(ov);
+  try{
+    var SEP='|||',txts=[],src=plan.data,ss=[];
+    txts.push(src.season_tip||'');txts.push((src.nutrition&&src.nutrition.balanced)||'');
+    plan.sel.forEach(function(k){var m=src.meals&&src.meals[k];if(!m||!m.dishes)return;m.dishes.forEach(function(d){txts.push(d.name||'');(d.tags||[]).forEach(function(t){txts.push(t);});(d.ingredients||[]).forEach(function(i){txts.push(i.name||'');});(d.steps||[]).forEach(function(s){txts.push(s||'');});});});
+    if(src.shopping_list){Object.keys(src.shopping_list).forEach(function(cat){var its=src.shopping_list[cat];if(!its||!its.length)return;its.forEach(function(it,ii){txts.push(it.name||'');ss.push({cat:cat,ii:ii});});});}
+    var toEn=lang==='en';
+    var p=toEn?'Translate Chinese to English, "|||" separated, return ONLY translations same count:\n\n'+txts.join(SEP):'英译中，"|||"分隔，只返回翻译，数量相同：\n\n'+txts.join(SEP);
+    var raw=await api(p,3000);
+    var parts=raw.split(SEP).map(function(s){return s.trim();});
+    var tr=JSON.parse(JSON.stringify(src)),pi=0;
+    function nx(){return pi<parts.length?parts[pi++]:'';}
+    tr.season_tip=nx();if(tr.nutrition)tr.nutrition.balanced=nx();
+    plan.sel.forEach(function(k){var sm=src.meals&&src.meals[k],tm=tr.meals&&tr.meals[k];if(!sm||!sm.dishes||!tm)return;tm.cuisine=toEn?(sm.cuisine==='中餐'?'Chinese':'Western'):(sm.cuisine==='Chinese'?'中餐':'西餐');sm.dishes.forEach(function(d,di){if(!tm.dishes[di])return;tm.dishes[di].name=nx();tm.dishes[di].tags=(d.tags||[]).map(function(){return nx();});tm.dishes[di].ingredients=(d.ingredients||[]).map(function(i){return{name:nx(),amount:i.amount};});tm.dishes[di].steps=(d.steps||[]).map(function(s){return nx()||s;});});});
+    if(ss.length){ss.forEach(function(s){if(tr.shopping_list&&tr.shopping_list[s.cat]&&tr.shopping_list[s.cat][s.ii]){tr.shopping_list[s.cat][s.ii].name=nx();}else{nx();}});}
+    var ol=lang==='zh'?'en':'zh';if(!plan.tr[ol])plan.tr[ol]=JSON.parse(JSON.stringify(src));plan.tr[lang]=tr;plan.data=tr;renderRes(tr,plan.sel);
+  }catch(e){console.error('transPlan failed',e);}
+  document.body.removeChild(ov);
+}
+/* ── Swap ── */
+async function swap(mk,di){
+  if(!plan)return;var card=document.getElementById('dc_'+mk+'_'+di);if(!card)return;
+  card.classList.add('busy');
+  var si=getSeason(),jq=getJq(),tot=S.adults+S.kids;
+  var ex=(plan.data.meals[mk]&&plan.data.meals[mk].dishes||[]).filter(function(_,i){return i!==di;}).map(function(d){return d.name;});
+  var old=plan.data.meals[mk]&&plan.data.meals[mk].dishes[di],c=plan.cuis?plan.cuis[mk]:'zh',tbs=[...taboos];
+  var p;
+  if(lang==='zh'){var tbS=tbs.length?'忌口：'+tbs.join('、')+'。':'';p='推荐一道替换菜，全部中文：\n- 替换"'+(old?old.name:'当前菜')+'"\n- 菜系：'+(c==='zh'?'中餐':'西餐')+'\n- 同餐已有：'+(ex.length?ex.join('、'):'无')+'\n- '+si.s+(jq?'，'+jq.n:'')+'\n- '+tbS+(rich?'可重口味':'清淡')+'\n- '+(S.time==='Q'?'30分钟内':'可稍复杂')+'\n- '+tot+'人份\n只返回JSON：{"name":"菜名","tags":["标签"],"ingredients":[{"name":"食材","amount":"用量"}],"steps":["步骤1","步骤2"]}';}
+  else{var tbE=tbs.map(function(x){return T.zh.ten[x]||x;});p='1 replacement dish in English:\n- Replace "'+(old?old.name:'current')+'"  Cuisine: '+(c==='zh'?'Chinese':'Western')+'\n- In meal: '+(ex.length?ex.join(', '):'none')+'\n- '+si.se+(jq?', '+jq.e:'')+'\n- '+(tbE.length?tbE.join(', ')+'. ':'')+'\n- '+(rich?'Bold OK':'Light')+' '+(S.time==='Q'?'<30min':'complex OK')+' '+tot+' srv\nONLY JSON: {"name":"name","tags":["tag"],"ingredients":[{"name":"ing","amount":"amt"}],"steps":["s1","s2"]}';}
+  try{var txt=await api(p,800);var nd=JSON.parse(txt);plan.data.meals[mk].dishes[di]=nd;plan.tr={};plan.tr[lang]=JSON.parse(JSON.stringify(plan.data));card.outerHTML=buildDC(mk,di,nd);rebuildShop();}
+  catch(e){var c2=document.getElementById('dc_'+mk+'_'+di);if(c2)c2.classList.remove('busy');}
+}
+/* ── Rebuild shop ── */
+async function rebuildShop(){
+  if(!plan)return;var tot=S.adults+S.kids,all=[];
+  plan.sel.forEach(function(k){var m=plan.data.meals[k];if(m&&m.dishes)m.dishes.forEach(function(d){all.push(d);});});
+  var ing=all.map(function(d){return(d.ingredients||[]).map(function(i){return i.name+' '+i.amount;}).join(', ');}).join('; ');
+  var l=L();
+  var p=lang==='zh'?'整理购物清单，分类汇总：\n'+ing+'\n分类：蔬菜、肉蛋水产、主食杂粮、奶豆豆制品、水果、调料干货、其他\n只返回JSON中文：\n{'+l.sj+'}\n合并同类。':'Organize shopping list:\n'+ing+'\nCategories: Vegetables, Meat & Eggs, Grains, Dairy & Soy, Fruits, Condiments, Other\nReturn ONLY JSON:\n{'+l.sj+'}\nMerge dups.';
+  try{var txt=await api(p,1200);var nl=JSON.parse(txt);plan.data.shopping_list=nl;var o=document.querySelector('.shopcard');if(o)o.outerHTML=buildShop(nl);}catch(e){}
+}
+/* ── Build card ── */
+function buildDC(mk,di,d){
+  var id=mk+'_'+di,l=L();
+  var tH=(d.tags||[]).map(function(t,i){var cls='dtag'+((i%2===1)?' g':'')+(/braised|spicy|bold|重口|红烧|麻辣/.test(t)?' r':'');return'<span class="'+cls+'">'+esc(t)+'</span>';}).join('');
+  var iH=(d.ingredients||[]).map(function(g){return'<div class="ingchip">'+esc(g.name)+' <span style="color:var(--faint);font-size:10px">'+esc(g.amount)+'</span></div>';}).join('');
+  var sH=(d.steps||[]).map(function(s){return'<li>'+esc(s)+'</li>';}).join('');
+  return'<div class="dc" id="dc_'+id+'"><div class="dh"><div class="dhn" onclick="tgl(\''+id+'\')"><div class="dt" style="font-family:'+l.f+'">'+esc(d.name)+'</div><div class="dtags">'+tH+'</div></div><div class="das"><button class="dswp" onclick="swap(\''+mk+'\','+di+')">'+l.swap+'</button><div class="dexp" id="exp_'+id+'" onclick="tgl(\''+id+'\')">▼</div></div></div><div class="db" id="db_'+id+'"><div class="dsec">'+l.ing+'</div><div class="inglist">'+iH+'</div><div class="dsec">'+l.steps+'</div><ol class="stps">'+sH+'</ol></div></div>';
+}
+/* ── Normalize shop keys ── */
+function normSL(sl){
+  var out={},lc=L().sc,zh=T.zh.sc,en=T.en.sc;
+  lc.forEach(function(cat,i){if(sl[cat]&&sl[cat].length){out[cat]=sl[cat];return;}var o=(lang==='zh'?en:zh)[i];if(sl[o]&&sl[o].length)out[cat]=sl[o];});
+  return out;
+}
+/* ── Build shop ── */
+function buildShop(sl){
+  if(!sl)return'';var l=L(),cats=l.sc,icons=l.si,nsl=normSL(sl),sh='',tot=0;
+  cats.forEach(function(cat){var its=nsl[cat];if(!its||!its.length)return;
+    sh+='<div class="shopcat"><div class="shopchdr"><div class="shopctit">'+(icons[cat]||'📦')+' '+cat+'</div><div class="shopcb" onclick="tCat(this,\''+esc(cat)+'\')">'+l.catOn+'</div></div><div class="shopitems">';
+    its.forEach(function(it){tot++;sh+='<div class="shopitem" data-cat="'+esc(cat)+'" onclick="tShopItem(this)"><div class="shopck"></div><span>'+esc(it.name)+'</span><span class="shopamt">'+esc(it.amount)+'</span></div>';});
+    sh+='</div></div>';
+  });
+  return'<div class="shopcard"><div class="shophead" onclick="tShopBody()"><span>🛒</span><div class="shophtit" style="font-family:'+l.f+'">'+l.shopTit+'</div><div class="shopbadge" id="shopBadge">'+l.shopN(tot)+'</div><button class="shopab" id="shopAllBtn" onclick="event.stopPropagation();tAllShop()">'+l.shopAllOn+'</button><span style="font-size:10px;opacity:.6;margin-left:2px" id="shopArr">▼</span></div><div class="shopbody" id="shopBody">'+sh+'<div class="shophint">'+l.shopHint+'</div></div></div>';
+}
+function tShopBody(){var b=document.getElementById('shopBody'),a=document.getElementById('shopArr');if(!b)return;var o=b.style.display!=='none';b.style.display=o?'none':'block';if(a)a.textContent=o?'▶':'▼';}
+function tShopItem(el){el.classList.toggle('chk');var ck=el.querySelector('.shopck');if(ck)ck.textContent=el.classList.contains('chk')?'✓':'';updShopBadge();}
+function tCat(btn,cat){var its=document.querySelectorAll('.shopitem[data-cat="'+cat+'"]'),all=[...its].every(function(x){return x.classList.contains('chk');});its.forEach(function(x){x.classList.toggle('chk',!all);var ck=x.querySelector('.shopck');if(ck)ck.textContent=all?'':'✓';});btn.classList.toggle('done',!all);btn.textContent=all?L().catOn:L().catOff;updShopBadge();}
+function tAllShop(){var its=document.querySelectorAll('.shopitem'),all=its.length>0&&[...its].every(function(x){return x.classList.contains('chk');});its.forEach(function(x){x.classList.toggle('chk',!all);var ck=x.querySelector('.shopck');if(ck)ck.textContent=all?'':'✓';});document.querySelectorAll('.shopcb').forEach(function(b){b.classList.toggle('done',!all);b.textContent=all?L().catOn:L().catOff;});var ab=document.getElementById('shopAllBtn');if(ab)ab.textContent=all?L().shopAllOn:L().shopAllOff;updShopBadge();}
+function updShopBadge(){var l=L(),a=document.querySelectorAll('.shopitem').length,d=document.querySelectorAll('.shopitem.chk').length,b=document.getElementById('shopBadge');if(b)b.textContent=(d===a&&a>0)?l.shopDone:l.shopLeft(a-d);}
+/* ── Render results ── */
+function renderRes(data,sel){
+  var l=L(),clbl={zh:l.czh,en:l.cen},mi={B:'🌅',L:'☀️',D:'🌙'},h='';
+  if(data.season_tip)h+='<div class="tipbox">🌿 '+esc(data.season_tip)+'</div>';
+  if(data.nutrition){var n=data.nutrition;h+='<div class="nbar"><div class="ntit" style="font-family:'+l.f+'">'+l.nut+'</div><div class="nitems"><div class="ni"><div class="nv">'+(n.calories||'-')+'</div><div class="nl">'+l.cal+'</div></div><div class="ni"><div class="nv">'+(n.protein||'-')+'</div><div class="nl">'+l.prot+'</div></div><div class="ni"><div class="nv">'+(n.vegetables||'-')+'</div><div class="nl">'+l.veg+'</div></div></div>'+(n.balanced?'<div style="font-size:11px;color:var(--ok);margin-top:7px;padding:6px 8px;background:var(--okb);border-radius:8px">✓ '+esc(n.balanced)+'</div>':'')+'</div>';}
+  sel.forEach(function(k){var meal=data.meals&&data.meals[k];if(!meal||!meal.dishes)return;var ct=plan.cuis&&plan.cuis[k]?plan.cuis[k]:'zh';var cs=meal.cuisine?(meal.cuisine==='中餐'||meal.cuisine==='Chinese'?l.czh:l.cen):clbl[ct];h+='<div class="msec"><div class="mhd"><div class="mico '+k+'">'+mi[k]+'</div><div class="mnm" style="font-family:'+l.f+'">'+l[k]+'<span class="ctag">'+cs+'</span></div></div>';meal.dishes.forEach(function(d,i){h+=buildDC(k,i,d);});h+='</div>';});
+  h+='<div class="sep"></div>'+buildShop(data.shopping_list);
+  h+='<button class="cfbtn show" id="cfBtn" onclick="cfToday()" style="font-family:'+l.f+'">'+l.cfBtn+'</button>';
+  document.getElementById('res').innerHTML=h;
+}
+/* ── Confirm today ── */
+function cfToday(){
+  if(!plan)return;var l=L(),btn=document.getElementById('cfBtn'),rec=getHist(),now=plan.date;
+  var dk=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+  var dr=rec.find(function(x){return x.date===dk;});if(!dr){dr={date:dk,meals:{}};rec.unshift(dr);}
+  plan.sel.forEach(function(k){var md=plan.data.meals[k];if(!md||!md.dishes)return;var ztr=plan.tr&&plan.tr.zh,etr=plan.tr&&plan.tr.en;var zm=ztr&&ztr.meals&&ztr.meals[k]?ztr.meals[k]:null;var em=etr&&etr.meals&&etr.meals[k]?etr.meals[k]:null;var cur=JSON.parse(JSON.stringify(md));if(plan.lang==='zh')zm=zm||cur;else em=em||cur;dr.meals[k]={zh:zm||cur,en:em||cur,orig:plan.lang};});
+  saveHist(rec);btn.textContent=l.cfMsg;btn.disabled=true;
+  fillHL(rec,dk);
+  setTimeout(function(){btn.disabled=false;btn.textContent=l.reCfBtn;},3000);
+}
+/* ── History lang fill ── */
+async function fillHL(rec,dk){
+  var dr=rec.find(function(x){return x.date===dk;});if(!dr)return;
+  var SEP='|||',allT=[],slots=[];
+  ['B','L','D'].forEach(function(k){var m=dr.meals&&dr.meals[k];if(!m)return;var ol=m.orig||lang,ml=ol==='zh'?'en':'zh';var om=m[ol],em=m[ml];if(!om||!om.dishes)return;var oN=om.dishes.map(function(d){return d.name;}).join();var eN=em&&em.dishes?em.dishes.map(function(d){return d.name;}).join():'';if(eN&&eN!==oN)return;var start=allT.length;om.dishes.forEach(function(d){allT.push(d.name||'');(d.tags||[]).forEach(function(t){allT.push(t);});(d.ingredients||[]).forEach(function(i){allT.push(i.name||'');});(d.steps||[]).forEach(function(s){allT.push(s||'');});});slots.push({k:k,ol:ol,ml:ml,om:om,start:start});});
+  if(!slots.length)return;
+  try{var tL=slots[0].ml;var p=tL==='en'?'Chinese to English, "|||" sep, ONLY translations same count:\n\n'+allT.join(SEP):'英译中，"|||"分隔，只返回翻译，数量相同：\n\n'+allT.join(SEP);var raw=await api(p,2000);var parts=raw.split(SEP).map(function(s){return s.trim();});slots.forEach(function(sl){var tr=JSON.parse(JSON.stringify(sl.om)),pi=sl.start;tr.dishes.forEach(function(d,di){tr.dishes[di].name=parts[pi++]||d.name;tr.dishes[di].tags=(d.tags||[]).map(function(){return parts[pi++]||'';});tr.dishes[di].ingredients=(d.ingredients||[]).map(function(i){return{name:parts[pi++]||i.name,amount:i.amount};});tr.dishes[di].steps=(d.steps||[]).map(function(s){return parts[pi++]||s;});});tr.cuisine=tL==='en'?(sl.om.cuisine==='中餐'?'Chinese':'Western'):(sl.om.cuisine==='Chinese'?'中餐':'西餐');dr.meals[sl.k][sl.ml]=tr;});saveHist(rec);}catch(e){}
+}
+async function transHist(){
+  var rec=getHist();if(!rec||!rec.length)return;
+  var hw=rec.some(function(dr){return['B','L','D'].some(function(k){var m=dr.meals&&dr.meals[k];if(!m||Array.isArray(m))return false;var ol=m.orig||'zh';if(ol===lang)return false;var ex=m[lang],om=m[ol];if(!om||!om.dishes)return false;var eN=ex&&ex.dishes?ex.dishes.map(function(d){return d.name;}).join():'';var oN=om.dishes.map(function(d){return d.name;}).join();return!eN||eN===oN;});});
+  if(!hw)return;
+  var SEP='|||',allT=[],slots=[];
+  rec.forEach(function(dr,ri){['B','L','D'].forEach(function(k){var m=dr.meals&&dr.meals[k];if(!m||Array.isArray(m))return;var ol=m.orig||'zh',om=m[ol],ex=m[lang];if(!om||!om.dishes||ol===lang)return;var oN=om.dishes.map(function(d){return d.name;}).join();var eN=ex&&ex.dishes?ex.dishes.map(function(d){return d.name;}).join():'';if(eN&&eN!==oN)return;var start=allT.length;om.dishes.forEach(function(d){allT.push(d.name||'');(d.tags||[]).forEach(function(t){allT.push(t);});(d.ingredients||[]).forEach(function(i){allT.push(i.name||'');});(d.steps||[]).forEach(function(s){allT.push(s||'');});});slots.push({ri:ri,k:k,ol:ol,om:om,start:start});});});
+  if(!allT.length)return;
+  try{var p=lang==='en'?'Chinese to English, "|||" sep, ONLY translations same count:\n\n'+allT.join(SEP):'英译中，"|||"分隔，只返回翻译，数量相同：\n\n'+allT.join(SEP);var raw=await api(p,3000);var parts=raw.split(SEP).map(function(s){return s.trim();});slots.forEach(function(sl){var tr=JSON.parse(JSON.stringify(sl.om)),pi=sl.start;tr.dishes.forEach(function(d,di){tr.dishes[di].name=parts[pi++]||d.name;tr.dishes[di].tags=(d.tags||[]).map(function(){return parts[pi++]||'';});tr.dishes[di].ingredients=(d.ingredients||[]).map(function(i){return{name:parts[pi++]||i.name,amount:i.amount};});tr.dishes[di].steps=(d.steps||[]).map(function(s){return parts[pi++]||s;});});tr.cuisine=lang==='en'?(sl.om.cuisine==='中餐'?'Chinese':'Western'):(sl.om.cuisine==='Chinese'?'中餐':'西餐');rec[sl.ri].meals[sl.k][lang]=tr;});saveHist(rec);if(document.getElementById('pageHistory').classList.contains('active'))renderCal();}catch(e){}
+}
+/* ── History ── */
+function getHist(){try{return JSON.parse(localStorage.getItem('mh')||'[]');}catch(e){return[];}}
+function saveHist(r){try{localStorage.setItem('mh',JSON.stringify(r.slice(0,90)));}catch(e){}}
+function renderCal(){
+  try{
+    var l=L(),rec=getHist(),rMap={};rec.forEach(function(r){rMap[r.date]=r;});
+    var now=new Date(),today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+    var fd=new Date(calY,calM,1).getDay(),dim=new Date(calY,calM+1,0).getDate();
+    var h='<div class="calnav"><button class="calnb" onclick="calMov(-1)">&#8249;</button><div class="calmo" style="font-family:'+l.f+'">'+l.calTit(calY,calM)+'</div><button class="calnb" onclick="calMov(1)">&#8250;</button></div>';
+    h+='<div class="calgrid">';l.wds.forEach(function(d){h+='<div class="calwd">'+d+'</div>';});
+    for(var i=0;i<fd;i++)h+='<div class="calday empty"></div>';
+    for(var d=1;d<=dim;d++){var dk=calY+'-'+String(calM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');var cls='calday'+(rMap[dk]?' has':'')+(dk===today?' today':'')+(dk===selDate?' sel':'');h+='<div class="'+cls+'" onclick="pickDay(\''+dk+'\')"><span class="cdn">'+d+'</span>'+(rMap[dk]?'<div class="cdot"></div>':'')+'</div>';}
+    h+='</div>';
+    if(selDate){
+      var r=rMap[selDate],lb=l.mlbls,mi={B:'🌅',L:'☀️',D:'🌙'},mc={B:'B',L:'L',D:'D'},body='';
+      if(r){['B','L','D'].forEach(function(k){var mr=r.meals&&r.meals[k];if(!mr)return;var md=Array.isArray(mr)?null:(mr[lang]||mr[mr.orig||'zh']||null);var ds=md&&md.dishes?md.dishes:(Array.isArray(mr)?mr.map(function(n){return{name:n,tags:[],ingredients:[],steps:[]};}):[]);if(!ds.length)return;var cs='';if(md&&md.cuisine){var cv=md.cuisine;cs='<span class="hmctag">'+(cv==='中餐'||cv==='Chinese'?(lang==='zh'?'中餐':'Chinese'):(lang==='zh'?'西餐':'Western'))+'</span>';}body+='<div class="hmb"><div class="hmmhdr"><div class="hmmico '+mc[k]+'">'+mi[k]+'</div><div class="hmmlbl" style="font-family:'+l.f+'">'+lb[k]+cs+'</div></div>';ds.forEach(function(d,di){var hid='h_'+selDate.replace(/-/g,'')+'_'+k+'_'+di;var iH=(d.ingredients||[]).map(function(g){return'<div class="hmingchip">'+esc(g.name)+' <span style="color:var(--faint)">'+esc(g.amount)+'</span></div>';}).join('');var sH=(d.steps||[]).map(function(s){return'<li>'+esc(s)+'</li>';}).join('');var hd=iH||sH;body+='<div class="hmdish"><div class="hmdishhdr" onclick="tglH(\''+hid+'\')"><div class="hmdishnm" style="font-family:'+l.f+'">'+esc(d.name)+'</div>'+(hd?'<div class="hmexp" id="hexp_'+hid+'">▼</div>':'')+'</div>';if(hd){body+='<div class="hmdishbody" id="hdb_'+hid+'">';if(iH)body+='<div class="hmsec">'+l.ing+'</div><div class="hming">'+iH+'</div>';if(sH)body+='<div class="hmsec">'+l.steps+'</div><ol class="hmstps">'+sH+'</ol>';body+='</div>';}body+='</div>';});body+='</div>';});if(!body)body='<p style="text-align:center;color:var(--faint);font-size:12px;padding:6px 0">'+l.noRec+'</p>';}
+      h+='<div class="caldet"><div class="caldethdr"><span>📋</span><div class="caldetdate">'+l.recDate(selDate)+'</div></div><div class="caldetbody">'+(r?body:'<p style="text-align:center;color:var(--faint);font-size:12px;padding:6px 0">'+l.noRec+'</p>')+'</div></div>';
+    }
+    document.getElementById('histList').innerHTML=h;
+  }catch(e){document.getElementById('histList').innerHTML='<p style="padding:20px;text-align:center;color:var(--faint);font-size:12px">'+esc(String(e))+'</p>';console.error(e);}
+}
+function calMov(d){calM+=d;if(calM<0){calM=11;calY--;}if(calM>11){calM=0;calY++;}renderCal();}
+function pickDay(dk){selDate=selDate===dk?null:dk;renderCal();}
+
+/* ── Setup / API Key ── */
+function showSetup(){
+  if(document.getElementById('setupOv'))return;
+  var ov=document.createElement('div');
+  ov.id='setupOv';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+  ov.innerHTML='<div id="setupBox" style="background:#faf7f4;border-radius:18px;padding:24px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,.25)">'
+    +'<div style="font-size:18px;font-weight:700;margin-bottom:6px;color:#3d3530;font-family:sans-serif">🔑 设置 API Key</div>'
+    +'<div style="font-size:12px;color:#8a7e76;margin-bottom:16px;line-height:1.6">请输入你的 Deepseek API Key。<br>获取地址：<a href="https://platform.deepseek.com" target="_blank" style="color:#8a7060">platform.deepseek.com</a></div>'
+    +'<input id="keyInput" type="password" placeholder="sk-..." style="width:100%;border:1.5px solid #ddd5cc;border-radius:10px;padding:10px 12px;font-size:13px;font-family:inherit;color:#3d3530;background:#f2ede8;outline:none;margin-bottom:12px">'
+    +'<button onclick="saveKey()" style="width:100%;background:#8a7060;color:#fff;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:600;cursor:pointer;font-family:sans-serif;margin-bottom:10px">保存并开始使用</button>'
+    +'<div id="keyErr" style="font-size:11px;color:#a07878;text-align:center;min-height:16px"></div>'
+    +'</div>';
+  // Adapt colors for dark mode
+  if(dark){
+    var box=ov.querySelector('#setupBox');
+    box.style.background='#2a2420';
+    box.querySelector('div').style.color='#ede5dc';
+    var inp=ov.querySelector('#keyInput');
+    inp.style.background='#1e1a18';inp.style.color='#ede5dc';inp.style.borderColor='#3a3028';
+  }
+  document.body.appendChild(ov);
+  setTimeout(function(){ov.querySelector('#keyInput').focus();},100);
+}
+async function saveKey(){
+  var val=document.getElementById('keyInput').value.trim();
+  var errEl=document.getElementById('keyErr');
+  if(!val||!val.startsWith('sk-')){errEl.textContent='请输入有效的 API Key（以 sk- 开头）';return;}
+  errEl.textContent='验证中…';
+  // Quick validation call
+  try{
+    const r=await fetch('https://api.deepseek.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+val},
+      body:JSON.stringify({model:'deepseek-chat',max_tokens:5,messages:[{role:'user',content:'hi'}]})
+    });
+    const d=await r.json();
+    if(d.error&&d.error.code!=='insufficient_quota'){errEl.textContent='Key 无效: '+d.error.message;return;}
+  }catch(e){errEl.textContent='网络错误，请检查连接';return;}
+  localStorage.setItem('ds_key',val);
+  var ov=document.getElementById('setupOv');
+  if(ov)document.body.removeChild(ov);
+  updateGenBtn();
+}
+function checkKeyOnLoad(){if(!getKey())showSetup();}
+/* Boot */
+applyLang();
+checkKeyOnLoad();
+
+
+
+</script>
+</body>
+</html>
